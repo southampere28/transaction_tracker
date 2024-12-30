@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:transaction_tracker/form_page.dart';
 import 'package:transaction_tracker/home_page.dart';
 import 'package:transaction_tracker/model/transaction.dart';
 
@@ -31,7 +32,11 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: HomePage(),
+      routes: {
+        '/' : (context) => const HomePage(),
+        '/form-page' : (context) => const FormPage(),
+        '/home' : (context) => const HomePage(),
+      },
     );
   }
 }
