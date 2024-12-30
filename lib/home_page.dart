@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
               totalPrice: 23000,
               name: nameValue,
               isPaid: false,
-              time: DateTime.now()));
+              time: DateTime.now().subtract(Duration(days: 1))));
 
       Fluttertoast.showToast(
           msg: 'you\'ve set data as $nameValue\'s transaction');
@@ -75,6 +75,133 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    Future<void> confirmDelete(
+        BuildContext context, int indexToDelete, String name) async {
+      return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Konfirmasi Hapus'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text(
+                      'Apakah kamu yakin ingin menghapus data dengan nama pelanggan \'$name\' ini?'),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  setState(() {
+                    if (indexToDelete != -1) {
+                      boxTransactions.deleteAt(indexToDelete);
+                      calculateTotal();
+                    }
+                    Fluttertoast.showToast(msg: 'Data Berhasil Dihapus');
+                    Navigator.pop(context);
+                  });
+                },
+                child: Text('Confirm'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    Future<void> confirmUpdate(BuildContext context, String title,
+        int indexToUpdate, bool paidStatus) {
+      return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Container(
+              width: MediaQuery.of(context).size.width *
+                  0.8, // 80% of screen width
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize:
+                    MainAxisSize.min, // Ensures dialog fits its content
+                children: [
+                  Text(
+                    "Konfirmasi Perubahan",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    paidStatus
+                        ? "Apakah Anda yakin ingin mengubah status pembayaran untuk '$title' menjadi belum dibayar?"
+                        : "Apakah Anda yakin ingin mengubah status pembayaran untuk '$title' menjadi Lunas?",
+                    style: TextStyle(fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close dialog
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: const Text("Batal"),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (indexToUpdate != -1) {
+                            Transaction transactionToUpdate =
+                                boxTransactions.getAt(indexToUpdate);
+
+                            Transaction transaction = Transaction(
+                              productType: transactionToUpdate.productType,
+                              totalPrice: transactionToUpdate.totalPrice,
+                              name: transactionToUpdate.name,
+                              isPaid: paidStatus
+                                  ? false
+                                  : true, // Set nilai isPaid menjadi true
+                              time: transactionToUpdate.time,
+                            );
+
+                            setState(() {
+                              boxTransactions.putAt(indexToUpdate, transaction);
+                              calculateTotal();
+                            });
+                          }
+                          Navigator.of(context).pop(); // Close dialog
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              paidStatus ? Colors.red : Colors.green,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: const Text("Ya, Lanjutkan"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -220,8 +347,8 @@ class _HomePageState extends State<HomePage> {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: boxTransactions.length,
               itemBuilder: (context, index) {
-                List transactions =
-                    boxTransactions.values.toList().reversed.toList();
+                List transactions = boxTransactions.values.toList().toList()
+                  ..sort((a, b) => b.time.compareTo(a.time));
                 Transaction transaction = transactions[index];
                 String formattedDate =
                     DateFormat('yyyy-MM-dd').format(transaction.time);
@@ -253,26 +380,20 @@ class _HomePageState extends State<HomePage> {
                       via: formatCurrency(transaction.totalPrice),
                       status: transaction.isPaid,
                       onDelete: () {
-                        setState(() {
-                          boxTransactions
-                              .deleteAt(transactions.length - 1 - index);
-                          calculateTotal();
-                        });
+                        final indexToDelete =
+                            boxTransactions.values.toList().indexWhere(
+                                  (t) => t.time == transaction.time,
+                                );
+
+                        confirmDelete(context, indexToDelete, transaction.name);
                       },
                       onUpdate: () {
-                        transaction = Transaction(
-                          productType: transaction.productType,
-                          totalPrice: transaction.totalPrice,
-                          name: transaction.name,
-                          isPaid: true, // Set nilai isPaid menjadi true
-                          time: transaction.time,
-                        );
-
-                        setState(() {
-                          boxTransactions.putAt(
-                              transactions.length - 1 - index, transaction);
-                          calculateTotal();
-                        });
+                        final indexToUpdate =
+                            boxTransactions.values.toList().indexWhere(
+                                  (t) => t.time == transaction.time,
+                                );
+                        confirmUpdate(context, transaction.name, indexToUpdate,
+                            transaction.isPaid);
                       },
                     ),
                   ],
@@ -286,7 +407,9 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: writeData,
+        onPressed: () {
+          Navigator.pushNamed(context, '/form-page');
+        },
         child: Icon(Icons.add),
       ),
     );
