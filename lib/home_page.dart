@@ -1,80 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:transaction_tracker/boxes.dart';
+import 'package:provider/provider.dart';
 import 'package:transaction_tracker/model/transaction.dart';
+import 'package:transaction_tracker/provider/transaction_providers.dart';
+import 'package:transaction_tracker/theme.dart';
 import 'package:transaction_tracker/widget/card_transaksi.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  double totalAll = 0;
-  double totalPriceUnpaid = 0;
-  double totalPricePaid = 0;
-
-  void calculateTotal() {
-    double total = 0;
-    double unpaidTotal = 0;
-    double paidTotal = 0;
-
-    for (int i = 0; i < boxTransactions.length; i++) {
-      Transaction? transaction = boxTransactions.getAt(i);
-      if (transaction != null) {
-        total += transaction.totalPrice;
-        if (!transaction.isPaid) {
-          unpaidTotal += transaction.totalPrice;
-        } else {
-          paidTotal += transaction.totalPrice;
-        }
-      }
-    }
-
-    setState(() {
-      totalAll = total;
-      totalPriceUnpaid = unpaidTotal;
-      totalPricePaid = paidTotal;
-    });
-  }
-
-  void writeData() {
-    String nameValue = 'zidan';
-
-    setState(() {
-      boxTransactions.add(
-          // 2,
-          Transaction(
-              productType: "Dana",
-              totalPrice: 23000,
-              name: nameValue,
-              isPaid: false,
-              time: DateTime.now().subtract(Duration(days: 1))));
-
-      Fluttertoast.showToast(
-          msg: 'you\'ve set data as $nameValue\'s transaction');
-      calculateTotal();
-    });
-  }
-
-  Transaction getData() {
-    Transaction logResult = boxTransactions.get(1);
-    return logResult;
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    calculateTotal();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    TransactionProvider transactionProvider =
+        Provider.of<TransactionProvider>(context);
+
     Future<void> confirmDelete(
         BuildContext context, int indexToDelete, String name) async {
       return showDialog(
@@ -96,20 +36,15 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('Cancel'),
+                child: const Text('Cancel'),
               ),
               TextButton(
-                onPressed: () async {
-                  setState(() {
-                    if (indexToDelete != -1) {
-                      boxTransactions.deleteAt(indexToDelete);
-                      calculateTotal();
-                    }
-                    Fluttertoast.showToast(msg: 'Data Berhasil Dihapus');
-                    Navigator.pop(context);
-                  });
+                onPressed: () {
+                  transactionProvider.deleteTransaction(indexToDelete);
+                  Fluttertoast.showToast(msg: 'Data Berhasil Dihapus');
+                  Navigator.pop(context);
                 },
-                child: Text('Confirm'),
+                child: const Text('Confirm'),
               ),
             ],
           );
@@ -134,7 +69,7 @@ class _HomePageState extends State<HomePage> {
                 mainAxisSize:
                     MainAxisSize.min, // Ensures dialog fits its content
                 children: [
-                  Text(
+                  const Text(
                     "Konfirmasi Perubahan",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
@@ -143,7 +78,7 @@ class _HomePageState extends State<HomePage> {
                     paidStatus
                         ? "Apakah Anda yakin ingin mengubah status pembayaran untuk '$title' menjadi belum dibayar?"
                         : "Apakah Anda yakin ingin mengubah status pembayaran untuk '$title' menjadi Lunas?",
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -165,7 +100,8 @@ class _HomePageState extends State<HomePage> {
                         onPressed: () {
                           if (indexToUpdate != -1) {
                             Transaction transactionToUpdate =
-                                boxTransactions.getAt(indexToUpdate);
+                                transactionProvider
+                                    .getTransactionAtIndex(indexToUpdate);
 
                             Transaction transaction = Transaction(
                               productType: transactionToUpdate.productType,
@@ -176,11 +112,8 @@ class _HomePageState extends State<HomePage> {
                                   : true, // Set nilai isPaid menjadi true
                               time: transactionToUpdate.time,
                             );
-
-                            setState(() {
-                              boxTransactions.putAt(indexToUpdate, transaction);
-                              calculateTotal();
-                            });
+                            transactionProvider.updateTransaction(
+                                indexToUpdate, transaction);
                           }
                           Navigator.of(context).pop(); // Close dialog
                         },
@@ -211,7 +144,7 @@ class _HomePageState extends State<HomePage> {
           style: TextStyle(fontSize: 20),
         ),
       ),
-      body: Container(
+      body: SizedBox(
         width: MediaQuery.of(context).size.width,
         child: ListView(
           scrollDirection: Axis.vertical,
@@ -223,7 +156,7 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 20,
                 ),
                 Expanded(
@@ -245,13 +178,13 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           'Total',
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          formatCurrency(totalAll),
+                          formatCurrency(transactionProvider.totalAll),
                           style: TextStyle(fontSize: 14),
                         ),
                       ],
@@ -282,13 +215,14 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           'Sukses',
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          formatCurrency(totalPricePaid),
+                          // formatCurrency(totalPricePaid),
+                          formatCurrency(transactionProvider.totalPricePaid),
                           style: TextStyle(fontSize: 14),
                         ),
                       ],
@@ -319,7 +253,7 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           'Belum Dibayar',
                           style: TextStyle(
                               fontSize: 12,
@@ -327,8 +261,8 @@ class _HomePageState extends State<HomePage> {
                               overflow: TextOverflow.ellipsis),
                         ),
                         Text(
-                          formatCurrency(totalPriceUnpaid),
-                          style: TextStyle(fontSize: 12),
+                          formatCurrency(transactionProvider.totalPriceUnpaid),
+                          style: const TextStyle(fontSize: 12),
                         ),
                       ],
                     ),
@@ -339,67 +273,65 @@ class _HomePageState extends State<HomePage> {
                 )
               ],
             ),
-            SizedBox(
+            const SizedBox(
               height: 30,
             ),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: boxTransactions.length,
-              itemBuilder: (context, index) {
-                List transactions = boxTransactions.values.toList().toList()
-                  ..sort((a, b) => b.time.compareTo(a.time));
-                Transaction transaction = transactions[index];
-                String formattedDate =
-                    DateFormat('yyyy-MM-dd').format(transaction.time);
-                // Variabel untuk memeriksa perubahan tanggal
-                bool isNewDate = (index == 0 ||
-                    formattedDate !=
-                        DateFormat('yyyy-MM-dd')
-                            .format(transactions[index - 1].time));
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (isNewDate) // Tambahkan teks tanggal jika tanggal baru
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16),
-                        child: Text(
-                          DateFormat('EEEE, dd MMMM yyyy').format(transaction
-                              .time), // Format tanggal lebih user-friendly
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+            Consumer<TransactionProvider>(builder: (context, provider, child) {
+              final transactions = transactionProvider.transactions;
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: transactionProvider.transactions.length,
+                itemBuilder: (context, index) {
+                  Transaction transaction = transactions[index];
+                  String formattedDate =
+                      DateFormat('yyyy-MM-dd').format(transaction.time);
+                  // Variabel untuk memeriksa perubahan tanggal
+                  bool isNewDate = (index == 0 ||
+                      formattedDate !=
+                          DateFormat('yyyy-MM-dd')
+                              .format(transactions[index - 1].time));
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (isNewDate) // Tambahkan teks tanggal jika tanggal baru
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16),
+                          child: Text(
+                            DateFormat('EEEE, dd MMMM yyyy').format(transaction
+                                .time), // Format tanggal lebih user-friendly
+                            style: blackTextStyle.copyWith(fontWeight: bold),
+                          ),
                         ),
-                      ),
-                    CardTransaksi(
-                      id: 'id',
-                      title: '${transaction.name} (${transaction.productType})',
-                      dateTime:
-                          DateFormat('dd/MM/yyyy').format(transaction.time),
-                      time: DateFormat('HH:mm:ss').format(transaction.time),
-                      via: formatCurrency(transaction.totalPrice),
-                      status: transaction.isPaid,
-                      onDelete: () {
-                        final indexToDelete =
-                            boxTransactions.values.toList().indexWhere(
-                                  (t) => t.time == transaction.time,
-                                );
+                      CardTransaksi(
+                        id: 'id',
+                        title:
+                            '${transaction.name} (${transaction.productType})',
+                        dateTime:
+                            DateFormat('dd/MM/yyyy').format(transaction.time),
+                        time: DateFormat('HH:mm:ss').format(transaction.time),
+                        via: formatCurrency(transaction.totalPrice),
+                        status: transaction.isPaid,
+                        onDelete: () {
+                          final indexToDelete = transactionProvider
+                              .getTransactionIndexByTime(transaction.time);
 
-                        confirmDelete(context, indexToDelete, transaction.name);
-                      },
-                      onUpdate: () {
-                        final indexToUpdate =
-                            boxTransactions.values.toList().indexWhere(
-                                  (t) => t.time == transaction.time,
-                                );
-                        confirmUpdate(context, transaction.name, indexToUpdate,
-                            transaction.isPaid);
-                      },
-                    ),
-                  ],
-                );
-              },
-            ),
+                          confirmDelete(
+                              context, indexToDelete, transaction.name);
+                        },
+                        onUpdate: () {
+                          final indexToUpdate = transactionProvider
+                              .getTransactionIndexByTime(transaction.time);
+                          confirmUpdate(context, transaction.name,
+                              indexToUpdate, transaction.isPaid);
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            }),
             const SizedBox(
               height: 100,
             ),
@@ -410,7 +342,7 @@ class _HomePageState extends State<HomePage> {
         onPressed: () {
           Navigator.pushNamed(context, '/form-page');
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

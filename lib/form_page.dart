@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:transaction_tracker/boxes.dart';
 import 'package:transaction_tracker/model/transaction.dart';
+import 'package:transaction_tracker/provider/transaction_providers.dart';
 import 'package:transaction_tracker/theme.dart';
 import 'package:transaction_tracker/widget/dropdown_widget.dart';
 import 'package:transaction_tracker/widget/formfield_text.dart';
@@ -39,49 +41,21 @@ class _FormPageState extends State<FormPage> {
 
   @override
   Widget build(BuildContext context) {
-    DateTime parseDateTime(String text) {
-      try {
-        // Parse text sesuai dengan format yang mencakup tanggal, jam, dan menit
-        final parsedDateTime = DateFormat("yyyy-MM-dd HH:mm").parse(text);
-
-        // Ambil detik saat ini
-        final currentSecond = DateTime.now().second;
-
-        // Buat DateTime baru dengan detik saat ini
-        return DateTime(
-          parsedDateTime.year,
-          parsedDateTime.month,
-          parsedDateTime.day,
-          parsedDateTime.hour,
-          parsedDateTime.minute,
-          currentSecond,
-        );
-      } catch (e) {
-        print("Format tidak valid: $e");
-        return DateTime.now();
-      }
-    }
+    TransactionProvider transactionProvider =
+        Provider.of<TransactionProvider>(context);
 
     void writeData() {
       String nameValue = nameController.text;
       bool statusValue = (valueStatus == "Belum Bayar") ? false : true;
       String productValue = valueProduct ?? '(belum diset)';
-      DateTime selectedDateTime = parseDateTime(timeController.text);
 
-      setState(() {
-        boxTransactions.add(
-            // 2,
-            Transaction(
-                productType: productValue,
-                totalPrice: double.parse(priceController.text),
-                name: nameValue,
-                isPaid: statusValue,
-                time: selectedDateTime));
-
-        Fluttertoast.showToast(
-            msg: 'you\'ve set data as $nameValue\'s transaction');
-        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-      });
+      transactionProvider.writeData(
+          nameValue: nameValue,
+          productValue: productValue,
+          priceValue: double.parse(priceController.text),
+          statusValue: statusValue,
+          dateTimeText: timeController.text,
+          context: context);
     }
 
     return Scaffold(
@@ -101,7 +75,7 @@ class _FormPageState extends State<FormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
+                const SizedBox(
                   height: 50,
                 ),
                 FormfieldText(
@@ -110,7 +84,7 @@ class _FormPageState extends State<FormPage> {
                     keyType: TextInputType.text,
                     labelField: 'Nama Pelanggan',
                     hintTxt: "(nama)"),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 DropdownWidget(
@@ -200,13 +174,13 @@ class _FormPageState extends State<FormPage> {
 
     if (pickedDate != null) {
       // Setelah tanggal dipilih, pilih waktu
+      // ignore: use_build_context_synchronously
       TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.now(),
       );
 
       if (pickedTime != null) {
-        // Gabungkan tanggal dan waktu
         final selectedDateTime = DateTime(
           pickedDate.year,
           pickedDate.month,
@@ -215,7 +189,6 @@ class _FormPageState extends State<FormPage> {
           pickedTime.minute,
         );
 
-        // Format hasilnya sesuai kebutuhan
         final formattedDateTime =
             "${selectedDateTime.year}-${selectedDateTime.month.toString().padLeft(2, '0')}-${selectedDateTime.day.toString().padLeft(2, '0')} "
             "${selectedDateTime.hour.toString().padLeft(2, '0')}:${selectedDateTime.minute.toString().padLeft(2, '0')}";
