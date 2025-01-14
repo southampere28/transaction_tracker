@@ -16,46 +16,55 @@ const Color subtitleColor = Color(0xff504F5E);
 const Color transparentColor = Colors.transparent;
 const Color blackColor = Color(0xff2E2E2E);
 const Color c4Color = Color(0xffC4C4C4);
-const Color bgCardMentoring = Color(0xffF5F5F5);
+const Color successColor = Color(0xff22bb33);
+const Color dangerColor = Color(0xffbb2124);
 
- TextStyle primaryTextStyle = GoogleFonts.poppins(
-    color: primaryColor,
-  );
+TextStyle primaryTextStyle = GoogleFonts.poppins(
+  color: primaryColor,
+);
 
- TextStyle secondaryTextStyle = GoogleFonts.poppins(
-    color: secondaryTextColor,
-  );
+TextStyle secondaryTextStyle = GoogleFonts.poppins(
+  color: secondaryTextColor,
+);
 
- TextStyle titleTextStyle = GoogleFonts.poppins(
-    color: thirdColor,
-  );
+TextStyle titleTextStyle = GoogleFonts.poppins(
+  color: thirdColor,
+);
 
- TextStyle whiteTextStyle = GoogleFonts.poppins(
-    color: Colors.white,
-  );
+TextStyle whiteTextStyle = GoogleFonts.poppins(
+  color: Colors.white,
+);
 
- TextStyle subtitleTextStyle = GoogleFonts.poppins(
-    color: subtitleColor,
-  );
+TextStyle subtitleTextStyle = GoogleFonts.poppins(
+  color: subtitleColor,
+);
 
- TextStyle priceTextStyle = GoogleFonts.poppins(
-    color: priceColor,
-  );
+TextStyle priceTextStyle = GoogleFonts.poppins(
+  color: priceColor,
+);
 
- TextStyle purpleTextStyle = GoogleFonts.poppins(
-    color: primaryColor,
-  );
+TextStyle purpleTextStyle = GoogleFonts.poppins(
+  color: primaryColor,
+);
 
- TextStyle blackTextStyle = GoogleFonts.poppins(
-    color: blackColor,
-  );
+TextStyle blackTextStyle = GoogleFonts.poppins(
+  color: blackColor,
+);
 
- TextStyle alertTextStyle = GoogleFonts.poppins(
-    color: alertColor,
-  );
+TextStyle alertTextStyle = GoogleFonts.poppins(
+  color: alertColor,
+);
 
- FontWeight light = FontWeight.w300;
- FontWeight regular = FontWeight.w400;
- FontWeight medium = FontWeight.w500;
- FontWeight semiBold = FontWeight.w600;
- FontWeight bold = FontWeight.w700;
+TextStyle dangerTextStyle = GoogleFonts.poppins(
+  color: dangerColor,
+);
+
+TextStyle successTextStyle = GoogleFonts.poppins(
+  color: successColor,
+);
+
+FontWeight light = FontWeight.w300;
+FontWeight regular = FontWeight.w400;
+FontWeight medium = FontWeight.w500;
+FontWeight semiBold = FontWeight.w600;
+FontWeight bold = FontWeight.w700;

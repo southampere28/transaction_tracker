@@ -94,7 +94,7 @@ class HomePage extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8)),
                         ),
-                        child: const Text("Batal"),
+                        child: Text("Batal", style: whiteTextStyle),
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -123,7 +123,7 @@ class HomePage extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8)),
                         ),
-                        child: const Text("Ya, Lanjutkan"),
+                        child: Text("Ya, Lanjutkan", style: whiteTextStyle),
                       ),
                     ],
                   ),
@@ -172,28 +172,26 @@ class HomePage extends StatelessWidget {
                           ),
                           right: BorderSide(color: Colors.black, width: 1),
                           bottom: BorderSide(color: Colors.black, width: 1)),
-                      borderRadius: BorderRadius.circular(12.0),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
-                          'Total',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
                         Text(
-                          formatCurrency(transactionProvider.totalAll),
-                          style: TextStyle(fontSize: 14),
+                          '${transactionProvider.transactionCount} Total',
+                          style: primaryTextStyle.copyWith(
+                              fontSize: 12, fontWeight: FontWeight.bold),
                         ),
+                        Text(formatCurrency(transactionProvider.totalAll),
+                            style: blackTextStyle.copyWith(fontSize: 12)),
                       ],
                     ),
                   ),
                 ),
 
                 const SizedBox(
-                  width: 12,
+                  width: 10,
                 ),
                 // paid category
                 Expanded(
@@ -209,29 +207,28 @@ class HomePage extends StatelessWidget {
                           ),
                           right: BorderSide(color: Colors.black, width: 1),
                           bottom: BorderSide(color: Colors.black, width: 1)),
-                      borderRadius: BorderRadius.circular(12.0),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
-                          'Sukses',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                        Text(
+                          '${transactionProvider.transactionPaidCount} Sukses',
+                          style: successTextStyle.copyWith(
+                              fontSize: 12, fontWeight: bold),
                         ),
                         Text(
-                          // formatCurrency(totalPricePaid),
-                          formatCurrency(transactionProvider.totalPricePaid),
-                          style: TextStyle(fontSize: 14),
-                        ),
+                            // formatCurrency(totalPricePaid),
+                            formatCurrency(transactionProvider.totalPricePaid),
+                            style: blackTextStyle.copyWith(fontSize: 12)),
                       ],
                     ),
                   ),
                 ),
 
                 const SizedBox(
-                  width: 12,
+                  width: 10,
                 ),
                 // unpaid category
                 Expanded(
@@ -247,22 +244,22 @@ class HomePage extends StatelessWidget {
                           ),
                           right: BorderSide(color: Colors.black, width: 1),
                           bottom: BorderSide(color: Colors.black, width: 1)),
-                      borderRadius: BorderRadius.circular(12.0),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
-                          'Belum Dibayar',
-                          style: TextStyle(
+                        Text(
+                          '${transactionProvider.transactionUnpaidCount} Pending',
+                          style: dangerTextStyle.copyWith(
                               fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: bold,
                               overflow: TextOverflow.ellipsis),
                         ),
                         Text(
                           formatCurrency(transactionProvider.totalPriceUnpaid),
-                          style: const TextStyle(fontSize: 12),
+                          style: blackTextStyle.copyWith(fontSize: 12),
                         ),
                       ],
                     ),
@@ -274,7 +271,7 @@ class HomePage extends StatelessWidget {
               ],
             ),
             const SizedBox(
-              height: 30,
+              height: 24,
             ),
             Consumer<TransactionProvider>(builder: (context, provider, child) {
               final transactions = transactionProvider.transactions;
