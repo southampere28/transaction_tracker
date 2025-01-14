@@ -11,11 +11,17 @@ class TransactionProvider extends ChangeNotifier {
   double _totalAll = 0;
   double _totalPriceUnpaid = 0;
   double _totalPricePaid = 0;
+  int _transactionCount = 0;
+  int _transactionPaidCount = 0;
+  int _transactionUnpaidCount = 0;
 
   // Getter for get total information
   double get totalAll => _totalAll;
   double get totalPriceUnpaid => _totalPriceUnpaid;
   double get totalPricePaid => _totalPricePaid;
+  int get transactionCount => _transactionCount;
+  int get transactionPaidCount => _transactionPaidCount;
+  int get transactionUnpaidCount => _transactionUnpaidCount;
 
   TransactionProvider(this._transactionBox) {
     calculateTotal();
@@ -40,11 +46,13 @@ class TransactionProvider extends ChangeNotifier {
   Transaction getTransactionAtIndex(int index) {
     if (index >= 0 && index < _transactionBox.length) {
       return _transactionBox.getAt(index);
-    }
-    else {
-    throw (index, _transactionBox.values.toList(),
-        'Index out of bounds in transaction list');
-  } // Return null jika indeks tidak valid
+    } else {
+      throw (
+        index,
+        _transactionBox.values.toList(),
+        'Index out of bounds in transaction list'
+      );
+    } // Return null jika indeks tidak valid
   }
 
   void deleteTransaction(int index) {
@@ -61,13 +69,19 @@ class TransactionProvider extends ChangeNotifier {
     double total = 0;
     double unpaidTotal = 0;
     double paidTotal = 0;
+    int transactionTotal = 0;
+    int transactionPaidTotal = 0;
+    int transactionUnpaidTotal = 0;
 
     for (var transaction in _transactionBox.values) {
       total += transaction.totalPrice;
+      transactionTotal++;
       if (!transaction.isPaid) {
         unpaidTotal += transaction.totalPrice;
+        transactionUnpaidTotal++;
       } else {
         paidTotal += transaction.totalPrice;
+        transactionPaidTotal++;
       }
     }
 
@@ -75,6 +89,9 @@ class TransactionProvider extends ChangeNotifier {
     _totalAll = total;
     _totalPriceUnpaid = unpaidTotal;
     _totalPricePaid = paidTotal;
+    _transactionCount = transactionTotal;
+    _transactionPaidCount = transactionPaidTotal;
+    _transactionUnpaidCount = transactionUnpaidTotal;
 
     // Notifikasi ke widget
     notifyListeners();
